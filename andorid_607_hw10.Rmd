@@ -1,0 +1,65 @@
+---
+title: "Data 607 Week 10 Assignment"
+author: "Jean Jimenez"
+date: "2023-10-30"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(httr)
+library(jsonlite)
+
+
+api_key = "g1JljwbIVFhBovObSkLwkJHfNfRDoPLo"
+
+
+end_date = format(Sys.Date(), "%Y%m%d")
+start_date = format(Sys.Date() - 90, "%Y%m%d")
+
+
+api_url = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
+params = list(
+  "q" = "Benjamin Netanyahu",
+  "begin_date" = start_date,
+  "end_date" = end_date,
+  "api-key" = api_key
+)
+
+
+response = GET(api_url, query = params)
+
+
+parsed_response = content(response, as="text")
+json_data = fromJSON(parsed_response)
+
+jr=json_data$response
+
+jrd=jr$docs
+
+names(json_data)
+names(jr)
+names(jr$docs)
+
+
+ids=jrd$`_id`
+urls=jrd$web_url
+headlines=jrd$headline
+snippets= jrd$snippet
+abstracts=jrd$abstract
+lead_paragraphs=jrd$lead_paragraph
+word_counts=jrd$word_count
+
+netan_dat=data.frame(c(urls,headlines,snippets,abstracts,lead_paragraphs,word_counts))
+
+col_names=c("url","headline","snippet","abstract","lead_parag","word_count")
+
+colnames(netan_dat)=col_names
+
+netan_dat
+
+```
+
