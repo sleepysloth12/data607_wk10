@@ -152,6 +152,7 @@ nrc_sentiments=get_sentiments("nrc")
 cnlp_init_udpipe()
 obj_1 = cnlp_annotate(first_df$text)
 
+#NRC Results first article
 sar_1_nrc = first_df %>%
   unnest_tokens(word, text) %>%
   inner_join(nrc_sentiments, by = "word") %>%
@@ -161,5 +162,178 @@ sar_1_nrc = first_df %>%
   mutate(net_sentiment = positive - negative)
 
 
+
+```
+
+
+Second Article.
+
+Separate by sentence
+
+```{r}
+second_txt= netan_dat_txt$full_txt[2]
+class(second_txt)
+
+second_txt=second_txt[[1]]
+tot_second_len=length(second_txt)
+
+#getting each sentence
+second_article_sentences=c()
+
+
+for (i in 1:tot_second_len){
+  if(second_txt[i] != ""){
+    second_article_sentences=c(second_article_sentences,second_txt[i])}
+}
+
+#all Paragraphs of the 2nd article
+second_article_sentences
+
+second_article_sentences = lapply(second_article_sentences, function(x) unlist(str_split(x, "\\. ")))
+second_article_sentences = unlist(second_article_sentences)
+
+
+second_df = tibble(sentence = 1:length(second_article_sentences), text = second_article_sentences)
+
+
+cnlp_init_udpipe()
+obj_2 = cnlp_annotate(second_df$text)
+
+#NRC Results second article
+sar_2_nrc = second_df %>%
+  unnest_tokens(word, text) %>%
+  inner_join(nrc_sentiments, by = "word") %>%
+  group_by(sentence, sentiment) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+```
+
+
+Third Article
+
+seperated by sentence 
+
+```{r}
+third_txt= netan_dat_txt$full_txt[3]
+class(third_txt)
+
+third_txt=third_txt[[1]]
+tot_third_len=length(third_txt)
+
+#getting each sentence
+third_article_sentences=c()
+
+
+for (i in 1:tot_third_len){
+  if(third_txt[i] != ""){
+    third_article_sentences=c(third_article_sentences,third_txt[i])}
+}
+
+#all Paragraphs of the 3rd article
+third_article_sentences
+
+third_article_sentences = lapply(third_article_sentences, function(x) unlist(str_split(x, "\\. ")))
+third_article_sentences = unlist(third_article_sentences)
+
+
+third_df = tibble(sentence = 1:length(third_article_sentences), text = third_article_sentences)
+
+obj_3 = cnlp_annotate(third_df$text)
+
+#NRC Results 3rd article
+sar_3_nrc = third_df %>%
+  unnest_tokens(word, text) %>%
+  inner_join(nrc_sentiments, by = "word") %>%
+  group_by(sentence, sentiment) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+```
+
+
+Fourth Article
+
+Separated by sentence
+
+```{r}
+fourth_txt= netan_dat_txt$full_txt[4]
+class(fourth_txt)
+
+fourth_txt=fourth_txt[[1]]
+tot_fourth_len=length(fourth_txt)
+
+#getting each sentence
+fourth_article_sentences=c()
+
+
+for (i in 1:tot_fourth_len){
+  if(fourth_txt[i] != ""){
+    fourth_article_sentences=c(fourth_article_sentences,fourth_txt[i])}
+}
+
+#all Paragraphs of the 4th article
+fourth_article_sentences
+
+fourth_article_sentences = lapply(fourth_article_sentences, function(x) unlist(str_split(x, "\\. ")))
+fourth_article_sentences = unlist(fourth_article_sentences)
+
+
+fourth_df = tibble(sentence = 1:length(fourth_article_sentences), text = fourth_article_sentences)
+
+obj_4 = cnlp_annotate(fourth_df$text)
+
+#NRC Results fourth article
+sar_4_nrc = fourth_df %>%
+  unnest_tokens(word, text) %>%
+  inner_join(nrc_sentiments, by = "word") %>%
+  group_by(sentence, sentiment) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+```
+
+
+
+Fifth Article
+
+Separated by Sentence
+
+```{r}
+fifth_txt= netan_dat_txt$full_txt[5]
+class(fifth_txt)
+
+fifth_txt=fifth_txt[[1]]
+tot_fifth_len=length(fifth_txt)
+
+#getting each sentence
+fifth_article_sentences=c()
+
+
+for (i in 1:tot_fifth_len){
+  if(fifth_txt[i] != ""){
+    fifth_article_sentences=c(fifth_article_sentences,fifth_txt[i])}
+}
+
+#all Paragraphs of the 5th article
+fifth_article_sentences
+
+fifth_article_sentences = lapply(fifth_article_sentences, function(x) unlist(str_split(x, "\\. ")))
+fifth_article_sentences = unlist(fifth_article_sentences)
+
+
+fifth_df = tibble(sentence = 1:length(fifth_article_sentences), text = fifth_article_sentences)
+
+obj_5 = cnlp_annotate(fifth_df$text)
+
+#NRC Results fifth article
+sar_5_nrc = fifth_df %>%
+  unnest_tokens(word, text) %>%
+  inner_join(nrc_sentiments, by = "word") %>%
+  group_by(sentence, sentiment) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
 ```
 
