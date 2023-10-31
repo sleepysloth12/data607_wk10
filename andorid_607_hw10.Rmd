@@ -9,18 +9,24 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+API Request and Obtaining Data
+
 ```{r}
+#loading libraries
 library(httr)
 library(jsonlite)
+library(tidyverse)
 
-
+#api key
 api_key = "g1JljwbIVFhBovObSkLwkJHfNfRDoPLo"
 
 
 end_date = format(Sys.Date(), "%Y%m%d")
 start_date = format(Sys.Date() - 90, "%Y%m%d")
 
-
+#api request
+#returns top articles in past 3 months
 api_url = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
 params = list(
   "q" = "Benjamin Netanyahu",
@@ -29,10 +35,10 @@ params = list(
   "api-key" = api_key
 )
 
-
+#JSON response
 response = GET(api_url, query = params)
 
-
+#cleaning JSON Data
 parsed_response = content(response, as="text")
 json_data = fromJSON(parsed_response)
 
@@ -53,13 +59,62 @@ abstracts=jrd$abstract
 lead_paragraphs=jrd$lead_paragraph
 word_counts=jrd$word_count
 
-netan_dat=data.frame(c(urls,headlines,snippets,abstracts,lead_paragraphs,word_counts))
+netan_dat=data.frame(
+  url=urls,
+  headline=headlines,
+  snippet=snippets,
+  abstract=abstracts,
+  lead_paragraph=lead_paragraphs,
+  word_count=word_counts)
 
-col_names=c("url","headline","snippet","abstract","lead_parag","word_count")
+netan_dat= netan_dat %>%
+  select(url, headline.main, snippet, abstract, lead_paragraph, word_count)
 
-colnames(netan_dat)=col_names
+netan_dat$lead_paragraph
 
-netan_dat
+colnames(netan_dat)=c("url","headline","snippet","abstract","lead_paragraph", "word_count")
+
+#data frame to use
+#exporting so we can all work on the same data.
+write.csv(netan_dat, "netan_dat.csv")
 
 ```
 
+
+Might not be enough Text in snippet or lead paragraph to do sentiment analysis.
+
+I have NYT subscription.
+
+Making a new column on the csv and and adding file prefix.
+
+Uploading Full text to Github.
+
+```{r}
+#CSV from above
+csv_link="https://raw.githubusercontent.com/sleepysloth12/data607_wk10/main/netan_dat.csv"
+
+netan_dat=read.csv(url(csv_link))
+
+#prefix for github full txt folder
+full_txt_raw_url_prefix="https://raw.githubusercontent.com/sleepysloth12/data607_wk10/main/fullText/"
+
+#full txt url column with link to full txt.
+netan_dat= netan_dat %>%
+  filter(article_text_file != "") %>%
+  mutate(full_txt_url= paste0(full_txt_raw_url_prefix,article_text_file,".txt") )
+
+#All full texts are in this data frame in the full_text column
+netan_dat_txt = netan_dat %>% 
+  rowwise() %>% 
+  mutate(full_txt = list(readLines(full_txt_url))) %>%
+  ungroup()
+
+
+
+```
+
+
+Tokenization
+
+(I will do the first link and tokenize it by paragraph)
+will work on it now.
