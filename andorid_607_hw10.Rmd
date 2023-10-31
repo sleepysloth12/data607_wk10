@@ -118,3 +118,48 @@ Tokenization
 
 (I will do the first link and tokenize it by paragraph)
 will work on it now.
+
+```{r}
+#First Article
+library(tidytext)
+library(textdata)
+library(cleanNLP)
+
+
+first_txt= netan_dat_txt$full_txt[1]
+class(first_txt)
+
+first_txt=first_txt[[1]]
+tot_first_len=length(first_txt)
+
+#getting each paragraph
+first_article_paragraphs=c()
+
+
+for (i in 1:tot_first_len){
+  if(first_txt[i] != ""){
+    first_article_paragraphs=c(first_article_paragraphs,first_txt[i])}
+}
+
+#all Paragraphs of the first article
+first_article_paragraphs
+
+
+first_df = tibble(paragraph = 1:length(first_article_paragraphs), text = first_article_paragraphs)
+
+nrc_sentiments=get_sentiments("nrc")
+
+cnlp_init_udpipe()
+obj_1 = cnlp_annotate(first_df$text)
+
+sar_1_nrc = first_df %>%
+  unnest_tokens(word, text) %>%
+  inner_join(nrc_sentiments, by = "word") %>%
+  group_by(paragraph, sentiment) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+
+```
+
