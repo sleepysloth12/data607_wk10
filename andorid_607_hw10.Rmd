@@ -9,8 +9,21 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Introduction
 
-API Request and Obtaining Data
+For this weeks homework assignment, we had to preform sentiment analysis on some text. Sentiment analysis is when you analyze some text, and attribute values to the word used. It is used to figure out opinions or sentiment held in writing.
+
+There are many different Lexicons that can be used to conduct sentiment analysis. For the purpose of this assignment, we are using `nrc` and `loughran`. There are many different uses of sentiment analysis.
+
+In this assignment, we decided to conduct sentiment analysis on New York Time's articles about Israeli Prime Minister Benjamin Netanyahu. The ongoing conflict has caused polarization in media and we were interested to see how the NYT's articles about Mr.Netanyahu rate in sentiment. We believe that sentiment analysis can be a useful tool to combat biases and misinformation in media/ in the news.
+
+Note: This is JUST an application of sentiment analysis, nothing else. We are NOT making any conclusions or statements in regards to the ongoing conflict.
+
+# Work
+
+## Obtaining Data
+
+To obtained the data, we used the NYT's article search API. We asked the API to return articles about Mr.Netanyahu for the past 3 months. Afterwards, we filtered down the top 5 articles and exported into a csv (because the API search results will change over time).
 
 ```{r}
 #loading libraries
@@ -70,7 +83,7 @@ netan_dat=data.frame(
 netan_dat= netan_dat %>%
   select(url, headline.main, snippet, abstract, lead_paragraph, word_count)
 
-netan_dat$lead_paragraph
+#netan_dat$lead_paragraph
 
 colnames(netan_dat)=c("url","headline","snippet","abstract","lead_paragraph", "word_count")
 
@@ -80,14 +93,7 @@ write.csv(netan_dat, "netan_dat.csv")
 
 ```
 
-
-Might not be enough Text in snippet or lead paragraph to do sentiment analysis.
-
-I have NYT subscription.
-
-Making a new column on the csv and and adding file prefix.
-
-Uploading Full text to Github.
+The snippet and lead paragraph section of the MetaData is not enough data to conduct the sentiment analysis. However, I have a NYT subscription. For the first 5 articles, I obtained the full text of the articles and uploaded them to github as a `txt` file. Then, I loaded all of the full texts from Github
 
 ```{r}
 #CSV from above
@@ -113,11 +119,7 @@ netan_dat_txt = netan_dat %>%
 
 ```
 
-
-Tokenization
-
-(I will do the first link and tokenize it by paragraph)
-will work on it now.
+## Tokenization
 
 ```{r}
 #First Article
@@ -142,7 +144,7 @@ for (i in 1:tot_first_len){
 }
 
 #all Paragraphs of the first article
-first_article_paragraphs
+#first_article_paragraphs
 
 
 first_df = tibble(paragraph = 1:length(first_article_paragraphs), text = first_article_paragraphs)
@@ -236,7 +238,6 @@ art1_loughran_word_counts %>%
   ggtitle("Top Positive and Negative Loughran Words for Article 1")
 ```
 
-
 Second Article.
 
 Separate by sentence
@@ -258,7 +259,7 @@ for (i in 1:tot_second_len){
 }
 
 #all Paragraphs of the 2nd article
-second_article_sentences
+#second_article_sentences
 
 second_article_sentences = lapply(second_article_sentences, function(x) unlist(str_split(x, "\\. ")))
 second_article_sentences = unlist(second_article_sentences)
@@ -344,10 +345,9 @@ art2_loughran_word_counts %>%
   ggtitle("Top Positive and Negative Loughran Words for Article 2")
 ```
 
-
 Third Article
 
-seperated by sentence 
+seperated by sentence
 
 ```{r}
 third_txt= netan_dat_txt$full_txt[3]
@@ -449,7 +449,6 @@ art3_loughran_word_counts %>%
   labs(x = "Contribution to sentiment", y = NULL) +
   ggtitle("Top Positive and Negative Loughran Words for Article 3")
 ```
-
 
 Fourth Article
 
@@ -556,8 +555,6 @@ art4_loughran_word_counts %>%
   ggtitle("Top Positive and Negative Loughran Words for Article 4")
 ```
 
-
-
 Fifth Article
 
 Separated by Sentence
@@ -662,4 +659,3 @@ art5_loughran_word_counts %>%
   labs(x = "Contribution to sentiment", y = NULL) +
   ggtitle("Top Positive and Negative Loughran Words for Article 5")
 ```
-
