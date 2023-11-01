@@ -147,6 +147,13 @@ first_article_paragraphs
 
 first_df = tibble(paragraph = 1:length(first_article_paragraphs), text = first_article_paragraphs)
 
+# Tidy article split apart by paragraphs
+tidy_art1 <- first_df %>%
+  group_by(paragraph) %>%
+  ungroup() %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)
+
 nrc_sentiments=get_sentiments("nrc")
 
 cnlp_init_udpipe()
@@ -161,8 +168,72 @@ sar_1_nrc = first_df %>%
   spread(key = sentiment, value = sentiment_count, fill = 0) %>%
   mutate(net_sentiment = positive - negative)
 
+nrc_pos_and_neg <- nrc_sentiments %>%
+  filter(sentiment %in% c("positive", "negative"))
 
+# The additional lexicon sentiment not shown in tidytextmining.com
+# It's from the the textdata package
+loughran <- get_sentiments("loughran")
 
+loughran_pos_and_neg <- loughran %>% 
+  filter(sentiment %in% c("positive", "negative"))
+
+sar_1_loughran <- tidy_art1 %>%
+  inner_join(loughran, by = "word") %>%
+  group_by(paragraph, sentiment) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+nrc_and_loughran_art1 <- bind_rows(
+  tidy_art1 %>%
+    inner_join(nrc_pos_and_neg) %>%
+    mutate(method = "NRC"),
+  tidy_art1 %>%
+    inner_join(loughran_pos_and_neg) %>%
+    mutate(method = "Loughran-McDonald")) %>%
+  group_by(paragraph, sentiment, method) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+# Comparison between the NRC & Loughran sentiment lexicons for article 1
+nrc_and_loughran_art1 %>%
+  ggplot(aes(paragraph, net_sentiment, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~method, ncol = 1, scales = "free_y")
+
+art1_nrc_word_counts <- tidy_art1 %>%
+  inner_join(nrc_pos_and_neg) %>%
+  count(word, sentiment, sort = TRUE) %>% 
+  ungroup()
+
+art1_nrc_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment", y = NULL) +
+  ggtitle("Top Positive and Negative NRC Words for Article 1")
+
+art1_loughran_word_counts <- tidy_art1 %>%
+  inner_join(loughran_pos_and_neg) %>%
+  count(word, sentiment, sort = TRUE) %>% 
+  ungroup()
+
+art1_loughran_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment", y = NULL) +
+  ggtitle("Top Positive and Negative Loughran Words for Article 1")
 ```
 
 
@@ -199,6 +270,12 @@ second_df = tibble(sentence = 1:length(second_article_sentences), text = second_
 cnlp_init_udpipe()
 obj_2 = cnlp_annotate(second_df$text)
 
+tidy_art2 <- second_df %>%
+  group_by(sentence) %>%
+  ungroup() %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)
+
 #NRC Results second article
 sar_2_nrc = second_df %>%
   unnest_tokens(word, text) %>%
@@ -208,6 +285,63 @@ sar_2_nrc = second_df %>%
   spread(key = sentiment, value = sentiment_count, fill = 0) %>%
   mutate(net_sentiment = positive - negative)
 
+#Loughran Results second article
+sar_2_loughran <- tidy_art2 %>%
+  inner_join(loughran, by = "word") %>%
+  group_by(sentence, sentiment) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+nrc_and_loughran_art2 <- bind_rows(
+  tidy_art2 %>%
+    inner_join(nrc_pos_and_neg) %>%
+    mutate(method = "NRC"),
+  tidy_art2 %>%
+    inner_join(loughran_pos_and_neg) %>%
+    mutate(method = "Loughran-McDonald")) %>%
+  group_by(sentence, sentiment, method) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+# Comparison between the NRC & Loughran sentiment lexicons for article 2
+nrc_and_loughran_art2 %>%
+  ggplot(aes(sentence, net_sentiment, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~method, ncol = 1, scales = "free_y")
+
+art2_nrc_word_counts <- tidy_art2 %>%
+  inner_join(nrc_pos_and_neg) %>%
+  count(word, sentiment, sort = TRUE) %>% 
+  ungroup()
+
+art2_nrc_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment", y = NULL) +
+  ggtitle("Top Positive and Negative NRC Words for Article 2")
+
+art2_loughran_word_counts <- tidy_art2 %>%
+  inner_join(loughran_pos_and_neg) %>%
+  count(word, sentiment, sort = TRUE) %>% 
+  ungroup()
+
+art2_loughran_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment", y = NULL) +
+  ggtitle("Top Positive and Negative Loughran Words for Article 2")
 ```
 
 
@@ -242,6 +376,12 @@ third_df = tibble(sentence = 1:length(third_article_sentences), text = third_art
 
 obj_3 = cnlp_annotate(third_df$text)
 
+tidy_art3 <- third_df %>%
+  group_by(sentence) %>%
+  ungroup() %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)
+
 #NRC Results 3rd article
 sar_3_nrc = third_df %>%
   unnest_tokens(word, text) %>%
@@ -250,6 +390,64 @@ sar_3_nrc = third_df %>%
   summarise(sentiment_count = n()) %>%
   spread(key = sentiment, value = sentiment_count, fill = 0) %>%
   mutate(net_sentiment = positive - negative)
+
+# Loughran results for 3rd article
+sar_3_loughran <- tidy_art3 %>%
+  inner_join(loughran, by = "word") %>%
+  group_by(sentence, sentiment) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+nrc_and_loughran_art3 <- bind_rows(
+  tidy_art3 %>%
+    inner_join(nrc_pos_and_neg) %>%
+    mutate(method = "NRC"),
+  tidy_art3 %>%
+    inner_join(loughran_pos_and_neg) %>%
+    mutate(method = "Loughran-McDonald")) %>%
+  group_by(sentence, sentiment, method) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+# Comparison between the NRC & Loughran sentiment lexicons for article 3
+nrc_and_loughran_art3 %>%
+  ggplot(aes(sentence, net_sentiment, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~method, ncol = 1, scales = "free_y")
+
+art3_nrc_word_counts <- tidy_art3 %>%
+  inner_join(nrc_pos_and_neg) %>%
+  count(word, sentiment, sort = TRUE) %>% 
+  ungroup()
+
+art3_nrc_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment", y = NULL) +
+  ggtitle("Top Positive and Negative NRC Words for Article 3")
+
+art3_loughran_word_counts <- tidy_art3 %>%
+  inner_join(loughran_pos_and_neg) %>%
+  count(word, sentiment, sort = TRUE) %>% 
+  ungroup()
+
+art3_loughran_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment", y = NULL) +
+  ggtitle("Top Positive and Negative Loughran Words for Article 3")
 ```
 
 
@@ -284,6 +482,12 @@ fourth_df = tibble(sentence = 1:length(fourth_article_sentences), text = fourth_
 
 obj_4 = cnlp_annotate(fourth_df$text)
 
+tidy_art4 <- fourth_df %>%
+  group_by(sentence) %>%
+  ungroup() %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)
+
 #NRC Results fourth article
 sar_4_nrc = fourth_df %>%
   unnest_tokens(word, text) %>%
@@ -292,6 +496,64 @@ sar_4_nrc = fourth_df %>%
   summarise(sentiment_count = n()) %>%
   spread(key = sentiment, value = sentiment_count, fill = 0) %>%
   mutate(net_sentiment = positive - negative)
+
+# Loughran results for 4th article
+sar_4_loughran <- tidy_art4 %>%
+  inner_join(loughran, by = "word") %>%
+  group_by(sentence, sentiment) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+nrc_and_loughran_art4 <- bind_rows(
+  tidy_art4 %>%
+    inner_join(nrc_pos_and_neg) %>%
+    mutate(method = "NRC"),
+  tidy_art4 %>%
+    inner_join(loughran_pos_and_neg) %>%
+    mutate(method = "Loughran-McDonald")) %>%
+  group_by(sentence, sentiment, method) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+# Comparison between the NRC & Loughran sentiment lexicons for article 4
+nrc_and_loughran_art4 %>%
+  ggplot(aes(sentence, net_sentiment, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~method, ncol = 1, scales = "free_y")
+
+art4_nrc_word_counts <- tidy_art4 %>%
+  inner_join(nrc_pos_and_neg) %>%
+  count(word, sentiment, sort = TRUE) %>% 
+  ungroup()
+
+art4_nrc_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment", y = NULL) +
+  ggtitle("Top Positive and Negative NRC Words for Article 4")
+
+art4_loughran_word_counts <- tidy_art4 %>%
+  inner_join(loughran_pos_and_neg) %>%
+  count(word, sentiment, sort = TRUE) %>% 
+  ungroup()
+
+art4_loughran_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment", y = NULL) +
+  ggtitle("Top Positive and Negative Loughran Words for Article 4")
 ```
 
 
@@ -327,6 +589,12 @@ fifth_df = tibble(sentence = 1:length(fifth_article_sentences), text = fifth_art
 
 obj_5 = cnlp_annotate(fifth_df$text)
 
+tidy_art5 <- fifth_df %>%
+  group_by(sentence) %>%
+  ungroup() %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words)
+
 #NRC Results fifth article
 sar_5_nrc = fifth_df %>%
   unnest_tokens(word, text) %>%
@@ -335,5 +603,63 @@ sar_5_nrc = fifth_df %>%
   summarise(sentiment_count = n()) %>%
   spread(key = sentiment, value = sentiment_count, fill = 0) %>%
   mutate(net_sentiment = positive - negative)
+
+# Loughran results for 5th article
+sar_5_loughran <- tidy_art5 %>%
+  inner_join(loughran, by = "word") %>%
+  group_by(sentence, sentiment) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+nrc_and_loughran_art5 <- bind_rows(
+  tidy_art5 %>%
+    inner_join(nrc_pos_and_neg) %>%
+    mutate(method = "NRC"),
+  tidy_art5 %>%
+    inner_join(loughran_pos_and_neg) %>%
+    mutate(method = "Loughran-McDonald")) %>%
+  group_by(sentence, sentiment, method) %>%
+  summarise(sentiment_count = n()) %>%
+  spread(key = sentiment, value = sentiment_count, fill = 0) %>%
+  mutate(net_sentiment = positive - negative)
+
+# Comparison between the NRC & Loughran sentiment lexicons for article 5
+nrc_and_loughran_art5 %>%
+  ggplot(aes(sentence, net_sentiment, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~method, ncol = 1, scales = "free_y")
+
+art5_nrc_word_counts <- tidy_art5 %>%
+  inner_join(nrc_pos_and_neg) %>%
+  count(word, sentiment, sort = TRUE) %>% 
+  ungroup()
+
+art5_nrc_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment", y = NULL) +
+  ggtitle("Top Positive and Negative NRC Words for Article 5")
+
+art5_loughran_word_counts <- tidy_art5 %>%
+  inner_join(loughran_pos_and_neg) %>%
+  count(word, sentiment, sort = TRUE) %>% 
+  ungroup()
+
+art5_loughran_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment", y = NULL) +
+  ggtitle("Top Positive and Negative Loughran Words for Article 5")
 ```
 
