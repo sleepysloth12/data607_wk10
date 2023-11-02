@@ -17,7 +17,7 @@ There are many different Lexicons that can be used to conduct sentiment analysis
 
 In this assignment, we decided to conduct sentiment analysis on New York Time's articles about Israeli Prime Minister Benjamin Netanyahu. The ongoing conflict has caused polarization in media and we were interested to see how the NYT's articles about Mr.Netanyahu rate in sentiment. We believe that sentiment analysis can be a useful tool to combat biases and misinformation in media/ in the news.
 
-Note: This is JUST an application of sentiment analysis, nothing else. We are NOT making any conclusions or statements in regards to the ongoing conflict.
+**Disclaimer**: The sentiment analysis conducted in this assignment is a **PURLEY** academic exercise aimed at understanding and applying data science techniques. It is **NOT** intended to promote, endorse, or engage in any form of criticism against any individual or government, including the Israeli government. This analysis should **NOT** be misconstrued or misinterpreted as a political statement or an act of anti-semitism. As data science students and American citizens, we exercise our protected right to conduct and discuss factual, evidence-based research on public figures and world leaders in accordance with ethical and moral standards. Our commitment as data scientists is to report accurately, use truthful data, and avoid misleading representations in all our work.
 
 # Work
 
@@ -30,6 +30,12 @@ To obtained the data, we used the NYT's article search API. We asked the API to 
 library(httr)
 library(jsonlite)
 library(tidyverse)
+library(tidytext)
+library(textdata)
+library(cleanNLP)
+```
+
+```{r}
 
 #api key
 api_key = "g1JljwbIVFhBovObSkLwkJHfNfRDoPLo"
@@ -93,7 +99,7 @@ write.csv(netan_dat, "netan_dat.csv")
 
 ```
 
-The snippet and lead paragraph section of the MetaData is not enough data to conduct the sentiment analysis. However, I have a NYT subscription. For the first 5 articles, I obtained the full text of the articles and uploaded them to github as a `txt` file. Then, I loaded all of the full texts from Github
+The snippet and lead paragraph section of the MetaData is not enough data to conduct the sentiment analysis. However, I have a NYT subscription. For the first 5 articles, I obtained the full text of the articles and uploaded them to github as a `txt` file. Then, I loaded all of the full texts from Github.
 
 ```{r}
 #CSV from above
@@ -119,14 +125,20 @@ netan_dat_txt = netan_dat %>%
 
 ```
 
-## Tokenization
+## Tokenization & Sentiment Analysis
+
+The first step of performing sentiment analysis is tokenization. Tokenization is dividing the text into distinct parts and attributing a value to that token.
+
+We added stop words to each of the articles to remove words that do not necessarily influence the sentiment of the article.
+
+We used the `nrc` and `loughran` lexicon.
+
+### First Article
+
+The first article was [Benjamin Netanyahu's Two Decades of Power, Bluster and Ego](https://www.nytimes.com/2023/09/27/magazine/benjamin-netanyahu-israel.html), published to the NY Time's Magazine section on September 27th, 2023 and updated on October 6th, 2023. This article has 8222 words and we decided to tokenize it by paragraph.
 
 ```{r}
 #First Article
-library(tidytext)
-library(textdata)
-library(cleanNLP)
-
 
 first_txt= netan_dat_txt$full_txt[1]
 class(first_txt)
@@ -158,8 +170,8 @@ tidy_art1 <- first_df %>%
 
 nrc_sentiments=get_sentiments("nrc")
 
-cnlp_init_udpipe()
-obj_1 = cnlp_annotate(first_df$text)
+
+#obj_1 = cnlp_annotate(first_df$text)
 
 #NRC Results first article
 sar_1_nrc = first_df %>%
@@ -249,9 +261,13 @@ art1_loughran_word_counts %>%
   ggtitle("Top Positive and Negative Loughran Words for Article 1")
 ```
 
-Second Article.
+This article was published prior to the October 7th attacks on Israel. Prior to the attacks, the Israeli public has been critical of Mr. Netanyahu's rule. There have been protests leading up to this moment. Netanyahu, facing corruption charges, teamed up with a right-wing coalition to obtain majority and remain prime minister.
 
-Separate by sentence
+The `nrc` sentiment analysis picked up more positive sentiment for the article, while the `loughram` picked up more negative terms. In the context of the article, I think that the `Loughran` lexicon did a better job picking up the sentimemnt. This article provides a long history of Mr.Netanyahu's rise to power. The most common negative words that influenced this sentiment were 'protesters', 'recalled', 'opposition'.
+
+### Second Article
+
+The second article was [Netanyahu Must Go](https://www.nytimes.com/2023/10/25/opinion/netanyahu-israel-gaza.html), published to the Opinion section of the New York Times on October 25th, 2023. The article is a transcript of an opinion short by an Israeli journalist and historian. The transcript has 169 words. For this text, we decided to separate by sentence.
 
 ```{r}
 second_txt= netan_dat_txt$full_txt[2]
@@ -279,8 +295,8 @@ second_article_sentences = unlist(second_article_sentences)
 second_df = tibble(sentence = 1:length(second_article_sentences), text = second_article_sentences)
 
 
-cnlp_init_udpipe()
-obj_2 = cnlp_annotate(second_df$text)
+
+#obj_2 = cnlp_annotate(second_df$text)
 
 tidy_art2 <- second_df %>%
   group_by(sentence) %>%
@@ -365,9 +381,11 @@ art2_loughran_word_counts %>%
   ggtitle("Top Positive and Negative Loughran Words for Article 2")
 ```
 
-Third Article
+For this article, the `loughran` had a better sentiment analysis than the `nrc` lexicon. Some of the positive words picked up by the `nrc` such as "authority" and "striking" can be negative depending on the context. The `loughran` lexicon correctly identified words of negative sentiment, with "conflict", "protests", and "failed" being the most frequent.
 
-seperated by sentence
+### Third Article
+
+The third article was [Netanyahu Rejects Calls for a Cease-fire --- and for His Resignation.](https://www.nytimes.com/2023/10/30/world/middleeast/netanyahu-israel-hamas-cease-fire.html) The article was published on October 30th, 2023 and has 335 words. It was published to the world news/middle east section. We separated this article by sentence.
 
 ```{r}
 third_txt= netan_dat_txt$full_txt[3]
@@ -394,7 +412,7 @@ third_article_sentences = unlist(third_article_sentences)
 
 third_df = tibble(sentence = 1:length(third_article_sentences), text = third_article_sentences)
 
-obj_3 = cnlp_annotate(third_df$text)
+#obj_3 = cnlp_annotate(third_df$text)
 
 tidy_art3 <- third_df %>%
   group_by(sentence) %>%
@@ -470,9 +488,11 @@ art3_loughran_word_counts %>%
   ggtitle("Top Positive and Negative Loughran Words for Article 3")
 ```
 
-Fourth Article
+The `loughran` lexicon did a better job than the `nrc` lexicon when it came to this article. The `nrc` lexicon incorrectly identified words such as "humanitarian" and "ministry" as positive sentiment. Meanwhile, in the context of the article, "humanitarian" has a negative connotation since it is talking about humanitarian workers criticism of the actions of Mr. Netanyahu's administration.
 
-Separated by sentence
+### Fourth Article
+
+The fourth article was [Netanyahu Apologizes After Blaming Security Chiefs for Failure in Hamas Attack](https://www.nytimes.com/2023/10/29/world/middleeast/netanyahu-apologizes-hamas-attack.html) published on October 29th, 2023. The article has 645 words and was published to the world news/middle east section. We separated this article by sentence.
 
 ```{r}
 fourth_txt= netan_dat_txt$full_txt[4]
@@ -491,7 +511,7 @@ for (i in 1:tot_fourth_len){
 }
 
 #all Paragraphs of the 4th article
-fourth_article_sentences
+#fourth_article_sentences
 
 fourth_article_sentences = lapply(fourth_article_sentences, function(x) unlist(str_split(x, "\\. ")))
 fourth_article_sentences = unlist(fourth_article_sentences)
@@ -499,7 +519,7 @@ fourth_article_sentences = unlist(fourth_article_sentences)
 
 fourth_df = tibble(sentence = 1:length(fourth_article_sentences), text = fourth_article_sentences)
 
-obj_4 = cnlp_annotate(fourth_df$text)
+#obj_4 = cnlp_annotate(fourth_df$text)
 
 tidy_art4 <- fourth_df %>%
   group_by(sentence) %>%
@@ -575,9 +595,11 @@ art4_loughran_word_counts %>%
   ggtitle("Top Positive and Negative Loughran Words for Article 4")
 ```
 
-Fifth Article
+I think the `nrc` lexicon did a good job picking up the sentiment for this article, although the `loughran` is more accurate still. A key point of the article was Mr. Netanyahu's deflection of blame for the attack towards members of his government. While the article spoke about him apologizing for some of his statements, there was still a general negative sentiment with criticism from members of his own government (in the article).
 
-Separated by Sentence
+### Fifth Article
+
+The fifth article was [Netanyahu Finds Himself at War in Gaza and at Home](https://www.nytimes.com/2023/10/29/world/middleeast/netanyahu-israel-gaza-politics.html) which has 1196 words. The article was published on October 29th, 2023 to the world news/middle east section. We separated this article by sentence.
 
 ```{r}
 fifth_txt= netan_dat_txt$full_txt[5]
@@ -596,7 +618,7 @@ for (i in 1:tot_fifth_len){
 }
 
 #all Paragraphs of the 5th article
-fifth_article_sentences
+#fifth_article_sentences
 
 fifth_article_sentences = lapply(fifth_article_sentences, function(x) unlist(str_split(x, "\\. ")))
 fifth_article_sentences = unlist(fifth_article_sentences)
@@ -604,7 +626,7 @@ fifth_article_sentences = unlist(fifth_article_sentences)
 
 fifth_df = tibble(sentence = 1:length(fifth_article_sentences), text = fifth_article_sentences)
 
-obj_5 = cnlp_annotate(fifth_df$text)
+#obj_5 = cnlp_annotate(fifth_df$text)
 
 tidy_art5 <- fifth_df %>%
   group_by(sentence) %>%
@@ -681,3 +703,19 @@ art5_loughran_word_counts %>%
   labs(x = "Contribution to sentiment", y = NULL) + 
   ggtitle("Top Positive and Negative Loughran Words for Article 5")
 ```
+
+The `loughran` did a good job at getting the sentiment for this article.
+
+# Conclusion and Future Directions
+
+In conclusion, sentiment analysis can be used to analyze the sentiment of text. In the context of this assignment, we used sentiment analysis to analyze what type of sentiment New York Times article written about Israeli Prime Minister Benjamin Netanyahu has.
+
+One way to enhance this project moving forward is to compare the results of both `nrc` and `loughran` for all articles and run a statistical analysis to see which lexicon is better at getting the sentiment for these types of articles. Another interesting enhancement to this project is to track down the sentiment towards Mr.Netanyahu over time and see how it changes based on world events. Sentiment analysis is a valuable tool to gauge the opinion of groups.
+
+**Disclaimer**: The sentiment analysis conducted in this assignment is a **PURLEY** academic exercise aimed at understanding and applying data science techniques. It is **NOT** intended to promote, endorse, or engage in any form of criticism against any individual or government, including the Israeli government. This analysis should **NOT** be misconstrued or misinterpreted as a political statement or an act of anti-semitism. As data science students and American citizens, we exercise our protected right to conduct and discuss factual, evidence-based research on public figures and world leaders in accordance with ethical and moral standards. Our commitment as data scientists is to report accurately, use truthful data, and avoid misleading representations in all our work.
+
+# Resources Used
+
+[tidytextmining](https://github.com/dgrtwo/tidy-text-mining/tree/master)
+
+[NYT API Developer Documentation](https://developer.nytimes.com/get-started)
