@@ -133,6 +133,9 @@ We added stop words to each of the articles to remove words that do not necessar
 
 We used the `nrc` and `loughran` lexicon.
 
+No terms or conditions appeared when downloading the `nrc` lexicon.
+A license is not needed for academic use for the `loughran` lexicon.
+
 ### First Article
 
 The first article was [Benjamin Netanyahu's Two Decades of Power, Bluster and Ego](https://www.nytimes.com/2023/09/27/magazine/benjamin-netanyahu-israel.html), published to the NY Time's Magazine section on September 27th, 2023 and updated on October 6th, 2023. This article has 8222 words and we decided to tokenize it by paragraph.
