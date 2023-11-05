@@ -33,6 +33,8 @@ library(tidyverse)
 library(tidytext)
 library(textdata)
 library(cleanNLP)
+library(ggplot2)
+library(knitr)
 ```
 
 ```{r}
@@ -709,11 +711,91 @@ art5_loughran_word_counts %>%
 
 The `loughran` did a good job at getting the sentiment for this article.
 
+# Additional Analyses
+
+Finally, let's wrap up by analyzing net sentiment means. First, we will start off by looking at the mean differences between NRC and Loughran sentiments. 
+
+```{r}
+
+nrc_and_loughran_art1_id <- nrc_and_loughran_art1 %>% subset(select = -paragraph) %>% 
+  mutate(ID = "Article 1")
+nrc_and_loughran_art2_id <- nrc_and_loughran_art2 %>% subset(select = -sentence) %>% 
+  mutate(ID = "Article 2")
+nrc_and_loughran_art3_id <- nrc_and_loughran_art3 %>% subset(select = -sentence) %>% 
+  mutate(ID = "Article 3")
+nrc_and_loughran_art4_id <- nrc_and_loughran_art4 %>% subset(select = -sentence) %>% 
+  mutate(ID = "Article 4")
+nrc_and_loughran_art5_id <- nrc_and_loughran_art5 %>% subset(select = -sentence) %>% 
+  mutate(ID = "Article 5")
+
+nrc_and_loughran_full <- rbind(nrc_and_loughran_art1_id, nrc_and_loughran_art2_id, 
+                                nrc_and_loughran_art3_id, nrc_and_loughran_art4_id,
+                                nrc_and_loughran_art5_id)
+
+
+nrc_and_loughran_means <- nrc_and_loughran_full %>% group_by(method) %>% summarize(means = mean(net_sentiment))
+
+nrc_and_loughran_means %>% 
+  ggplot(aes(method, means, fill = method)) + 
+  geom_col(position = "stack") +
+  geom_hline(yintercept = 0, linetype = "solid") +
+  labs(title = "Net Differences in Sentiments Between Loughran-McDonald and NRC Analyses", x = "Method", y = "Net Sentiment") + coord_flip() +
+  theme_minimal()
+```
+
+As we can see, it appears that, overall, the NRC analysis coded the article sentiments more neutrally, on average, than the Loughran analysis.
+
+And now, let's look at the sentiments across all five articles
+
+```{r}
+nrc_and_loughran_means <- nrc_and_loughran_full %>% group_by(ID) %>% summarize(means = mean(net_sentiment))
+
+kable(nrc_and_loughran_means)
+
+nrc_and_loughran_means %>% 
+  ggplot(aes(ID, means, fill = ID)) + 
+  geom_col(position = "stack") +
+  geom_hline(yintercept = 0, linetype = "solid") +
+  labs(title = "Mean Net Sentiments by Article", x = "Article", y = "Net Sentiment") + coord_flip() + theme_minimal()
+```
+
+As we can see here, it appears that each article was coded, on average, with a greater degree of negative sentiments than positive sentiments. Furthermore, it would appear that the 3rd article was coded as the most negative article of the five, whereas the 2nd article was coded as the least negative
+
+
+Now, let's look at the sentiments across the five articles by the analytic method used:
+
+```{r}
+loughran_means <- nrc_and_loughran_full %>% filter(method == "Loughran-McDonald") %>% group_by(ID) %>% summarize(means = mean(net_sentiment))
+
+kable(loughran_means)
+
+nrc_means <- nrc_and_loughran_full %>% filter(method == "NRC") %>% group_by(ID) %>% summarize(means = mean(net_sentiment))
+
+kable(nrc_means)
+
+loughran_means %>% 
+  ggplot(aes(ID, means, fill = ID)) + 
+  geom_col(position = "stack") +
+  geom_hline(yintercept = 0, linetype = "solid") +
+  labs(title = "Mean Net Sentiments by Article (Loughran-McDonald)", x = "Article", y = "Net Sentiment") + coord_flip() +
+  theme_minimal()
+
+nrc_means %>% 
+  ggplot(aes(ID, means, fill = ID)) + 
+  geom_col(position = "stack") +
+  geom_hline(yintercept = 0, linetype = "solid") +
+  labs(title = "Mean Net Sentiments by Article (NRC)", x = "Article", y = "Net Sentiment") + coord_flip() + theme_minimal()
+```
+It would appear that the Loughran-McDonald analysis, as expected, coded the articles in a much more negative manner than the NRC analysis. In addition, the Loughran-McDonald analysis identified Article 1 as containing the greatest amount of negative sentiments. The NRC analysis, on the otherhand, identified far more positive sentiments, overall. Surprisingly, in contrast with the Loughran-McDonald analysis, the NRC analysis coded Article 1 with the highest average positive sentiments.
+
+
 # Conclusion and Future Directions
 
 In conclusion, sentiment analysis can be used to analyze the sentiment of text. In the context of this assignment, we used sentiment analysis to analyze what type of sentiment New York Times article written about Israeli Prime Minister Benjamin Netanyahu has.
 
-One way to enhance this project moving forward is to compare the results of both `nrc` and `loughran` for all articles and run a statistical analysis to see which lexicon is better at getting the sentiment for these types of articles. Another interesting enhancement to this project is to track down the sentiment towards Mr.Netanyahu over time and see how it changes based on world events. Sentiment analysis is a valuable tool to gauge the opinion of groups.
+Interestingly, both analyses tended to differ with regards to their sentiment coding schemas per article. These differences are most apparent for article 1, wherein the NRC method captured a more net positive outlook than the Loughran-McDonald method. These findings demonstrate the disparity in sentiment coding methods across lexicons, and highlight the importance of human or AI intervention to determine the most appropriate model for their purposes.    
+
+One way to enhance this project moving forward is to compare the results of both `nrc` and `loughran` for all articles by performing statistical analyses to see which lexicon is better at getting the sentiment for these types of articles. Another interesting enhancement to this project is to track down the sentiment towards Mr.Netanyahu over time and see how it changes based on world events. Sentiment analysis is a valuable tool to gauge the opinion of groups.
 
 **Disclaimer**: The sentiment analysis conducted in this assignment is a **PURLEY** academic exercise aimed at understanding and applying data science techniques. It is **NOT** intended to promote, endorse, or engage in any form of criticism against any individual or government, including the Israeli government. This analysis should **NOT** be misconstrued or misinterpreted as a political statement or an act of anti-semitism. As data science students and American citizens, we exercise our protected right to conduct and discuss factual, evidence-based research on public figures and world leaders in accordance with ethical and moral standards. Our commitment as data scientists is to report accurately, use truthful data, and avoid misleading representations in all our work.
 
@@ -722,3 +804,4 @@ One way to enhance this project moving forward is to compare the results of both
 [tidytextmining](https://github.com/dgrtwo/tidy-text-mining/tree/master)
 
 [NYT API Developer Documentation](https://developer.nytimes.com/get-started)
+
