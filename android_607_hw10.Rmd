@@ -37,7 +37,7 @@ library(ggplot2)
 library(knitr)
 ```
 
-```{r}
+```{r include = FALSE}
 
 #api key
 api_key = "g1JljwbIVFhBovObSkLwkJHfNfRDoPLo"
