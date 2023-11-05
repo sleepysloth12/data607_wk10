@@ -2,7 +2,10 @@
 title: "Data 607 Week 10 Assignment"
 author: "Jean Jimenez, Matthew Roland, Kelly Eng"
 date: "2023-10-30"
-output: pdf_document
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -40,7 +43,7 @@ library(knitr)
 ```{r include = FALSE}
 
 #api key
-api_key = "g1JljwbIVFhBovObSkLwkJHfNfRDoPLo"
+api_key = "YourAPIKeyHere"
 
 
 end_date = format(Sys.Date(), "%Y%m%d")
@@ -80,24 +83,24 @@ abstracts=jrd$abstract
 lead_paragraphs=jrd$lead_paragraph
 word_counts=jrd$word_count
 
-netan_dat=data.frame(
-  url=urls,
-  headline=headlines,
-  snippet=snippets,
-  abstract=abstracts,
-  lead_paragraph=lead_paragraphs,
-  word_count=word_counts)
+#netan_dat=data.frame(
+ # url=urls,
+  #headline=headlines,
+  #snippet=snippets,
+  #abstract=abstracts,
+  #lead_paragraph=lead_paragraphs,
+  #word_count=word_counts)
 
-netan_dat= netan_dat %>%
-  select(url, headline.main, snippet, abstract, lead_paragraph, word_count)
+#netan_dat= netan_dat %>%
+  #select(url, headline.main, snippet, abstract, lead_paragraph, word_count)
 
 #netan_dat$lead_paragraph
 
-colnames(netan_dat)=c("url","headline","snippet","abstract","lead_paragraph", "word_count")
+#colnames(netan_dat)=c("url","headline","snippet","abstract","lead_paragraph", "word_count")
 
 #data frame to use
 #exporting so we can all work on the same data.
-write.csv(netan_dat, "netan_dat.csv")
+#write.csv(netan_dat, "netan_dat.csv")
 
 ```
 
@@ -804,4 +807,5 @@ One way to enhance this project moving forward is to compare the results of both
 [tidytextmining](https://github.com/dgrtwo/tidy-text-mining/tree/master)
 
 [NYT API Developer Documentation](https://developer.nytimes.com/get-started)
+
 
